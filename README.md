@@ -29,7 +29,7 @@ date is kept, the panel can show how long something has been dodged
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/USERNAME/omarchy-tasks
+omarchy plugin add https://github.com/eobraw/omarchy-eob-tasks
 omarchy plugin enable eobnovus.tasks
 ```
 
