@@ -77,7 +77,7 @@ to come back here for it.
 
 ## Data
 
-Plain JSON at `~/.local/share/omarchy-tasks/tasks.json`, written atomically and
+Plain JSON at `~/.local/share/omarchy/eobraw.tasks/tasks.json`, written atomically and
 watched for changes — edit it by hand and the bar updates immediately.
 
 ```json

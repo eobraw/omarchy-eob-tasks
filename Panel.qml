@@ -80,7 +80,7 @@ Panel {
 
   readonly property string footerText: store.corrupt
     ? "tasks.json could not be parsed \u2014 edits are disabled"
-    : (activeTab === "about" ? "Tasks 1.1.0 \u00b7 ~/.local/share/omarchy-tasks/tasks.json" : countsLine)
+    : (activeTab === "about" ? "Tasks 1.1.0 \u00b7 ~/.local/share/omarchy/eobraw.tasks/tasks.json" : countsLine)
 
   TaskStore { id: store }
 

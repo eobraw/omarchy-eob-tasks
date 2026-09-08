@@ -12,8 +12,13 @@ import "Store.js" as Store
 Item {
   id: root
 
+  // Nested under an `omarchy/` parent and keyed on the plugin id, matching how
+  // first-party plugins lay out their files (~/.local/state/omarchy/...). The
+  // id is the one name guaranteed unique across plugins, so two authors' task
+  // trackers can coexist. XDG_DATA_HOME rather than STATE: these are the user's
+  // own notes, the kind of thing a backup should pick up.
   readonly property string dir: (Quickshell.env("XDG_DATA_HOME")
-    || (Quickshell.env("HOME") + "/.local/share")) + "/omarchy-tasks"
+    || (Quickshell.env("HOME") + "/.local/share")) + "/omarchy/eobraw.tasks"
   readonly property string path: dir + "/tasks.json"
 
   // Replaced wholesale on every change; QML only re-evaluates a `var` binding
