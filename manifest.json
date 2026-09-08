@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "eobnovus.tasks",
+  "id": "eobraw.tasks",
   "name": "Tasks",
   "version": "1.1.0",
-  "author": "eobnovus",
+  "author": "eobraw",
   "license": "MIT",
   "description": "Daily and monthly task tracker with a completed archive",
   "kinds": [

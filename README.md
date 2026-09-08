@@ -30,13 +30,13 @@ date is kept, the panel can show how long something has been dodged
 
 ```bash
 omarchy plugin add https://github.com/eobraw/omarchy-eob-tasks
-omarchy plugin enable eobnovus.tasks --after omarchy.clock
+omarchy plugin enable eobraw.tasks --after omarchy.clock
 ```
 
 `omarchy plugin add` clones the repo and leaves the plugin **disabled** — shell
 plugins run unsandboxed, so read the code before enabling it. The install
 directory comes from the `id` in `manifest.json`, not from the repo name, so
-this lands in `~/.config/omarchy/plugins/eobnovus.tasks/`.
+this lands in `~/.config/omarchy/plugins/eobraw.tasks/`.
 
 `enable` takes the bar placement directly; `--after`, `--before`, `--section`
 and `--index` all work, or drop the flag to accept the default (center).
@@ -46,8 +46,8 @@ and `--index` all work, or drop the flag to accept the default (center).
 Add to `~/.config/hypr/bindings.lua`:
 
 ```lua
-o.bind("SUPER + SHIFT + T", "Add task", "omarchy-shell shell toggle eobnovus.tasks")
-o.bind("SUPER + ALT + T", "Tasks", "omarchy-shell -q eobnovus.tasks toggle")
+o.bind("SUPER + SHIFT + T", "Add task", "omarchy-shell shell toggle eobraw.tasks")
+o.bind("SUPER + ALT + T", "Tasks", "omarchy-shell -q eobraw.tasks toggle")
 ```
 
 The plugin declares both `bar-widget` and `overlay` kinds, so
@@ -120,7 +120,7 @@ run `omarchy restart shell` after changes. QML errors show up in
 `journalctl --user -f | grep -i qml`, but `console.log` from a user plugin does
 not, so it is no use for tracing your own code.
 
-On a multi-monitor setup only one bar instance can own the `eobnovus.tasks` IPC
+On a multi-monitor setup only one bar instance can own the `eobraw.tasks` IPC
 target, so `Super + Alt + T` may open the panel on the other screen. Clicking
 the bar icon always uses the right one.
 

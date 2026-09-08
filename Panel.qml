@@ -9,8 +9,8 @@ import "Store.js" as Store
 // open()/close()/opened contract that `omarchy-shell shell toggle` needs.
 Panel {
   id: root
-  moduleName: "eobnovus.tasks"
-  ipcTarget: "eobnovus.tasks"
+  moduleName: "eobraw.tasks"
+  ipcTarget: "eobraw.tasks"
 
   readonly property color foreground: bar ? bar.foreground : Color.foreground
   readonly property color urgent: bar ? bar.urgent : Color.urgent
