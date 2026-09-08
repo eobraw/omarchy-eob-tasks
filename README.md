@@ -30,17 +30,16 @@ date is kept, the panel can show how long something has been dodged
 
 ```bash
 omarchy plugin add https://github.com/eobraw/omarchy-eob-tasks
-omarchy plugin enable eobnovus.tasks
+omarchy plugin enable eobnovus.tasks --after omarchy.clock
 ```
 
-`omarchy plugin add` clones into `~/.config/omarchy/plugins/eobnovus.tasks/`
-and leaves the plugin disabled so you can read the code first.
+`omarchy plugin add` clones the repo and leaves the plugin **disabled** — shell
+plugins run unsandboxed, so read the code before enabling it. The install
+directory comes from the `id` in `manifest.json`, not from the repo name, so
+this lands in `~/.config/omarchy/plugins/eobnovus.tasks/`.
 
-Then place the widget in the bar:
-
-```bash
-omarchy bar put eobnovus.tasks --after omarchy.clock
-```
+`enable` takes the bar placement directly; `--after`, `--before`, `--section`
+and `--index` all work, or drop the flag to accept the default (center).
 
 ### Keybindings
 
