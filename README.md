@@ -3,6 +3,8 @@
 A daily and monthly task tracker that lives in the Omarchy bar. Unfinished
 tasks carry forward on their own, so nothing quietly disappears at midnight.
 
+![Adding a task, moving it to This Month with `m`, moving it back, and completing it](docs/demo.gif)
+
 - **Bar widget** — a checkbox icon with today's pending count, colored urgent
   when something has been carried over.
 - **Panel** — `Today` / `This Month` / `Done` / `About` tabs. Type to add,
