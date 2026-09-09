@@ -266,6 +266,46 @@ function removeTask(state, id) {
   return tasks.length === source.length ? null : { version: VERSION, tasks: tasks }
 }
 
+// The bucket a task is not in. One task lives in exactly two places, so a
+// "move" is always a flip and never needs a target argument.
+function otherScope(scope) {
+  return scope === "month" ? "day" : "month"
+}
+
+// Re-files a task under the other scope. `createdOn` deliberately survives the
+// move: the task is the same task, and a straggler that has been sitting on
+// Today for two weeks should keep saying so after it is pushed out to This
+// Month. That also keeps the move reversible with no history lost.
+function setScope(state, id, scope) {
+  var wanted = scope === "month" ? "month" : "day"
+  var source = state && state.tasks ? state.tasks : []
+  var tasks = []
+  var changed = false
+
+  for (var i = 0; i < source.length; i++) {
+    var task = source[i]
+    if (task.id !== id || task.scope === wanted) {
+      tasks.push(task)
+      continue
+    }
+    changed = true
+    tasks.push({
+      id: task.id,
+      text: task.text,
+      scope: wanted,
+      createdOn: task.createdOn,
+      done: task.done,
+      completedAt: task.completedAt
+    })
+  }
+  return changed ? { version: VERSION, tasks: tasks } : null
+}
+
+function moveTask(state, id) {
+  var task = findTask(state, id)
+  return task ? setScope(state, id, otherScope(task.scope)) : null
+}
+
 // Lets a typed line pick its own bucket regardless of which tab or toggle is
 // active: "m: pay rent" is monthly, "d: buy milk" is daily, anything else falls
 // back to whatever the UI had selected.

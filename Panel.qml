@@ -41,9 +41,10 @@ Panel {
     { kind: "help", key: "l1", keys: "Tab / Shift + Tab", label: "Switch tabs" },
     { kind: "help", key: "l2", keys: "j / k  or  \u2193 / \u2191", label: "Move between tasks" },
     { kind: "help", key: "l3", keys: "Space / Enter", label: "Complete or reopen a task" },
-    { kind: "help", key: "l4", keys: "x", label: "Delete the selected task" },
-    { kind: "help", key: "l5", keys: "a", label: "Jump to the add field" },
-    { kind: "help", key: "l6", keys: "Esc", label: "Close the panel" },
+    { kind: "help", key: "l4", keys: "m", label: "Move a task between Today and This Month" },
+    { kind: "help", key: "l5", keys: "x", label: "Delete the selected task" },
+    { kind: "help", key: "l6", keys: "a", label: "Jump to the add field" },
+    { kind: "help", key: "l7", keys: "Esc", label: "Close the panel" },
 
     { kind: "header", key: "h-add", label: "Adding a task" },
     { kind: "help", key: "a1", keys: "Enter", label: "Add to the current tab" },
@@ -60,12 +61,14 @@ Panel {
 
     { kind: "header", key: "h-mouse", label: "Mouse" },
     { kind: "help", key: "m1", keys: "Click a row", label: "Complete or reopen it" },
-    { kind: "help", key: "m2", keys: "\u00d7 on a row", label: "Delete it" },
-    { kind: "help", key: "m3", keys: "Click the bar icon", label: "Open this panel" },
+    { kind: "help", key: "m2", keys: "\u2192 / \u2190 on a row", label: "Move it to the other list" },
+    { kind: "help", key: "m3", keys: "\u00d7 on a row", label: "Delete it" },
+    { kind: "help", key: "m4", keys: "Click the bar icon", label: "Open this panel" },
 
     { kind: "header", key: "h-carry", label: "Carry-forward" },
     { kind: "help", key: "c1", keys: "Automatic", label: "Unfinished tasks stay on Today or This Month until done" },
-    { kind: "help", key: "c2", keys: "carried 3d", label: "How long an unfinished task has been rolling over" }
+    { kind: "help", key: "c2", keys: "carried 3d", label: "How long an unfinished task has been rolling over" },
+    { kind: "help", key: "c3", keys: "After a move", label: "A moved task keeps its age, so a straggler stays visible" }
   ]
 
   readonly property string badgeText: store.dailyCount > 0
@@ -80,7 +83,7 @@ Panel {
 
   readonly property string footerText: store.corrupt
     ? "tasks.json could not be parsed \u2014 edits are disabled"
-    : (activeTab === "about" ? "Tasks 1.1.0 \u00b7 ~/.local/share/omarchy/eobraw.tasks/tasks.json" : countsLine)
+    : (activeTab === "about" ? "Tasks 1.2.0 \u00b7 ~/.local/share/omarchy/eobraw.tasks/tasks.json" : countsLine)
 
   TaskStore { id: store }
 
@@ -128,6 +131,25 @@ Panel {
   function deleteCursor() {
     var task = currentTask()
     if (task) store.remove(task.id)
+  }
+
+  // Re-files the selected task under the other pending scope. Only the two
+  // pending tabs offer it: a completed task has already left both lists, and
+  // re-bucketing it would only shuffle the archive.
+  function moveTask(id) {
+    if (!root.taskTab || !id) return
+    var index = root.selectedIndex
+    if (!store.move(id)) return
+    // The row just left this list. Keep the cursor where it was so a run of
+    // m's walks down the list instead of stranding the highlight past the end.
+    var next = firstSelectable(index, 1)
+    root.selectedIndex = next !== -1 ? next : firstSelectable(rows.length - 1, -1)
+    root.cursorActive = root.selectedIndex !== -1
+  }
+
+  function moveSelected() {
+    var task = currentTask()
+    if (task) root.moveTask(task.id)
   }
 
   // `focusField` is false when the switch came from h/l inside the list, so a
@@ -233,6 +255,7 @@ Panel {
       onDeleteRequested: root.deleteCursor()
       onTextKey: function (text) {
         if (text === "a" && root.taskTab) addField.forceActiveFocus()
+        else if (text === "m" || text === "M") root.moveSelected()
       }
 
       Column {
@@ -404,6 +427,22 @@ Panel {
                   font.pixelSize: Style.font.icon
                 }
 
+                // Points the way the task is going: right toward This Month,
+                // left back toward Today, matching the order of the tabs above.
+                PanelActionButton {
+                  id: moveButton
+                  anchors.right: removeButton.left
+                  anchors.rightMargin: Style.spacing.xxs
+                  anchors.verticalCenter: parent.verticalCenter
+                  visible: taskRow.hasCursor && root.taskTab
+                  iconText: root.activeTab === "month" ? "󰅁" : "󰅂"
+                  tooltipText: root.activeTab === "month" ? "Move to Today" : "Move to This Month"
+                  foreground: root.dim
+                  hoverColor: root.foreground
+                  fontFamily: root.fontFamily
+                  onClicked: if (taskRow.task) root.moveTask(taskRow.task.id)
+                }
+
                 PanelActionButton {
                   id: removeButton
                   anchors.right: parent.right
@@ -421,7 +460,7 @@ Panel {
                 Text {
                   id: meta
                   textFormat: Text.PlainText
-                  anchors.right: removeButton.left
+                  anchors.right: moveButton.left
                   anchors.rightMargin: Style.spacing.xs
                   anchors.verticalCenter: parent.verticalCenter
                   text: rowDelegate.modelData.meta

@@ -6,7 +6,7 @@ tasks carry forward on their own, so nothing quietly disappears at midnight.
 - **Bar widget** — a checkbox icon with today's pending count, colored urgent
   when something has been carried over.
 - **Panel** — `Today` / `This Month` / `Done` / `About` tabs. Type to add,
-  click or press `Space` to complete.
+  click or press `Space` to complete, `m` to move a task between the two lists.
 - **Quick add overlay** — a global hotkey opens a centered capture box from
   anywhere; type, press Enter, it's saved.
 - **Completed archive** — everything you've finished, grouped by the day it
@@ -64,9 +64,15 @@ own IPC target. Pick combinations that are free on your system — Omarchy uses
 | `Tab` / `Shift + Tab` | Switch tabs |
 | `j` / `k`, `↓` / `↑` | Move between tasks |
 | `Space` / `Enter` | Complete or reopen a task |
+| `m` | Move the selected task between Today and This Month |
 | `x` | Delete the selected task |
 | `a` | Jump to the add field |
 | `Esc` | Close |
+
+On a pending tab a hovered or selected row also grows a `›` / `‹` button that
+moves it to the other list. A moved task keeps its original `createdOn`, so
+pushing a straggler out to This Month does not reset its age — and the move is
+reversible with nothing lost.
 
 In either input, `m:` files a task under This Month and `d:` under Today. In
 the overlay, `Shift + Enter` adds as monthly and `Ctrl + Enter` adds without

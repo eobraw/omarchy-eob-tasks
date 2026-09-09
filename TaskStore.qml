@@ -60,6 +60,7 @@ Item {
   function add(text, scope) { return apply(Store.addTask(root.state, text, scope, new Date())) }
   function toggle(id) { return apply(Store.toggleDone(root.state, id, new Date())) }
   function remove(id) { return apply(Store.removeTask(root.state, id)) }
+  function move(id) { return apply(Store.moveTask(root.state, id)) }
 
   function ingest(text) {
     var parsed = Store.parse(text)
