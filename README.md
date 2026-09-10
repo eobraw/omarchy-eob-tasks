@@ -8,7 +8,10 @@ tasks carry forward on their own, so nothing quietly disappears at midnight.
 - **Bar widget** — a checkbox icon with today's pending count, colored urgent
   when something has been carried over.
 - **Panel** — `Today` / `This Month` / `Done` / `About` tabs. Type to add,
-  click or press `Space` to complete, `m` to move a task between the two lists.
+  click or press `Space` to complete, `m` to move a task between the two lists,
+  `r` to make it repeat.
+- **Repeating tasks** — a daily or weekly task drops off the list when you tick
+  it and comes back on its own when it is next due.
 - **Quick add overlay** — a global hotkey opens a centered capture box from
   anywhere; type, press Enter, it's saved.
 - **Completed archive** — everything you've finished, grouped by the day it
@@ -27,6 +30,30 @@ task to a half-finished write — and it behaves correctly when the machine was
 asleep or powered off across midnight or a month boundary. Because the original
 date is kept, the panel can show how long something has been dodged
 (`carried 3d`, `carried 2mo`) and sorts the oldest stragglers to the top.
+
+## Repeating tasks
+
+Type `daily: vitamins` or `weekly: take the bins out`, or press `r` on any
+pending task to cycle it once → daily → weekly. The cadence shows in the row's
+meta column where the carried-over age normally sits.
+
+Completing one files a dated entry in `Done` — so the archive keeps every time
+you did it, not just the last — and takes the task off the list until it is due
+again. Daily means the next day; weekly means seven days after the day you last
+completed it, so a bin run done on a Friday comes back the following Friday
+rather than jumping to some fixed start-of-week.
+
+This is the same computed-not-migrated trick as carry-forward. The task keeps a
+`lastDoneOn` stamp and is simply hidden while `lastDoneOn + interval` is still
+in the future, so a machine that was asleep across midnight — or across a
+fortnight — comes back with exactly the right things due and no catch-up job to
+get wrong.
+
+Reopening the entry in `Done` undoes the completion: the archive row goes away
+and the task is back on its list straight away.
+
+Repeating tasks never turn the bar icon urgent. One that is due today is on
+schedule, not a backlog.
 
 ## Install
 
@@ -67,6 +94,7 @@ own IPC target. Pick combinations that are free on your system — Omarchy uses
 | `j` / `k`, `↓` / `↑` | Move between tasks |
 | `Space` / `Enter` | Complete or reopen a task |
 | `m` | Move the selected task between Today and This Month |
+| `r` | Cycle the selected task: once → daily → weekly |
 | `x` | Delete the selected task |
 | `a` | Jump to the add field |
 | `Esc` | Close |
@@ -76,7 +104,8 @@ moves it to the other list. A moved task keeps its original `createdOn`, so
 pushing a straggler out to This Month does not reset its age — and the move is
 reversible with nothing lost.
 
-In either input, `m:` files a task under This Month and `d:` under Today. In
+In either input, `m:` files a task under This Month and `d:` under Today, and
+`daily:` / `weekly:` make it recurring. In
 the overlay, `Shift + Enter` adds as monthly and `Ctrl + Enter` adds without
 closing, for capturing several in a row.
 
@@ -98,13 +127,19 @@ watched for changes — edit it by hand and the bar updates immediately.
       "scope": "month",
       "createdOn": "2026-09-01",
       "done": false,
-      "completedAt": null
+      "completedAt": null,
+      "repeat": "",
+      "lastDoneOn": null
     }
   ]
 }
 ```
 
-`scope` is `day` or `month`; `completedAt` is a full ISO timestamp. If the file
+`scope` is `day` or `month`; `completedAt` is a full ISO timestamp. `repeat` is
+`""`, `daily` or `weekly`, and `lastDoneOn` is the day a repeating task was last
+ticked off — a repeating task is never itself `done`, it just goes quiet until
+it is due again. Each completion is written as its own finished task carrying an
+`origin` pointing back at the repeating one. If the file
 ever fails to parse, the plugin refuses to write over it and says so in the
 panel footer rather than replacing your tasks with an empty list.
 
@@ -115,7 +150,7 @@ panel footer rather than replacing your tasks with an empty list.
 | `Panel.qml` | Bar button, popup, tabs, rows, About reference |
 | `QuickAdd.qml` | The global capture overlay |
 | `TaskStore.qml` | Loads, watches and atomically writes `tasks.json` |
-| `Store.js` | Pure logic: parsing, dates, carry-forward, mutations. No QML. |
+| `Store.js` | Pure logic: parsing, dates, carry-forward, recurrence, mutations. No QML. |
 
 ## Requirements
 

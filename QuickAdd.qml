@@ -66,7 +66,7 @@ Item {
       root.dismiss()
       return
     }
-    if (!store.add(parsed.text, parsed.scope)) return
+    if (!store.add(parsed.text, parsed.scope, parsed.repeat)) return
 
     field.text = ""
     if (keepOpen) {
@@ -176,7 +176,8 @@ Item {
         Text {
           textFormat: Text.PlainText
           width: parent.width
-          text: "Enter to add · Shift+Enter for monthly · Ctrl+Enter to add and keep going · Tab switches · Esc cancels"
+          text: "Enter to add · Shift+Enter for monthly · Ctrl+Enter to add and keep going · Tab switches · Esc cancels\n"
+            + "daily: or weekly: in front of the text makes it come back on its own"
           color: root.dim
           font.family: root.fontFamily
           font.pixelSize: Style.font.caption

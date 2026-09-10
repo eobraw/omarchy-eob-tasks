@@ -42,6 +42,7 @@ Panel {
     { kind: "help", key: "l2", keys: "j / k  or  \u2193 / \u2191", label: "Move between tasks" },
     { kind: "help", key: "l3", keys: "Space / Enter", label: "Complete or reopen a task" },
     { kind: "help", key: "l4", keys: "m", label: "Move a task between Today and This Month" },
+    { kind: "help", key: "l4r", keys: "r", label: "Cycle the selected task: once \u2192 daily \u2192 weekly" },
     { kind: "help", key: "l5", keys: "x", label: "Delete the selected task" },
     { kind: "help", key: "l6", keys: "a", label: "Jump to the add field" },
     { kind: "help", key: "l7", keys: "Esc", label: "Close the panel" },
@@ -50,6 +51,8 @@ Panel {
     { kind: "help", key: "a1", keys: "Enter", label: "Add to the current tab" },
     { kind: "help", key: "a2", keys: "m: buy milk", label: "File it under This Month" },
     { kind: "help", key: "a3", keys: "d: buy milk", label: "File it under Today" },
+    { kind: "help", key: "a5", keys: "daily: vitamins", label: "A task that comes back the next day" },
+    { kind: "help", key: "a6", keys: "weekly: bins", label: "A task that comes back a week later" },
     { kind: "help", key: "a4", keys: "\u2193", label: "Move down into the list" },
 
     { kind: "header", key: "h-quick", label: "Quick add overlay" },
@@ -62,13 +65,19 @@ Panel {
     { kind: "header", key: "h-mouse", label: "Mouse" },
     { kind: "help", key: "m1", keys: "Click a row", label: "Complete or reopen it" },
     { kind: "help", key: "m2", keys: "\u2192 / \u2190 on a row", label: "Move it to the other list" },
+    { kind: "help", key: "m2r", keys: "󰑖 on a row", label: "Cycle how often it repeats" },
     { kind: "help", key: "m3", keys: "\u00d7 on a row", label: "Delete it" },
     { kind: "help", key: "m4", keys: "Click the bar icon", label: "Open this panel" },
 
     { kind: "header", key: "h-carry", label: "Carry-forward" },
     { kind: "help", key: "c1", keys: "Automatic", label: "Unfinished tasks stay on Today or This Month until done" },
     { kind: "help", key: "c2", keys: "carried 3d", label: "How long an unfinished task has been rolling over" },
-    { kind: "help", key: "c3", keys: "After a move", label: "A moved task keeps its age, so a straggler stays visible" }
+    { kind: "help", key: "c3", keys: "After a move", label: "A moved task keeps its age, so a straggler stays visible" },
+
+    { kind: "header", key: "h-repeat", label: "Repeating tasks" },
+    { kind: "help", key: "r1", keys: "daily", label: "Completing it files it under Done and it returns tomorrow" },
+    { kind: "help", key: "r2", keys: "weekly", label: "Same, a week after the day you last did it" },
+    { kind: "help", key: "r3", keys: "Reopen in Done", label: "Undoes the completion and puts the task straight back" }
   ]
 
   readonly property string badgeText: store.dailyCount > 0
@@ -83,7 +92,7 @@ Panel {
 
   readonly property string footerText: store.corrupt
     ? "tasks.json could not be parsed \u2014 edits are disabled"
-    : (activeTab === "about" ? "Tasks 1.2.0 \u00b7 ~/.local/share/omarchy/eobraw.tasks/tasks.json" : countsLine)
+    : (activeTab === "about" ? "Tasks 1.3.0 \u00b7 ~/.local/share/omarchy/eobraw.tasks/tasks.json" : countsLine)
 
   TaskStore { id: store }
 
@@ -152,6 +161,13 @@ Panel {
     if (task) root.moveTask(task.id)
   }
 
+  // Only the pending tabs offer it, for the same reason as a move: an archive
+  // row records one completion and has nothing left to repeat.
+  function repeatSelected() {
+    var task = currentTask()
+    if (task && root.taskTab) store.cycleRepeat(task.id)
+  }
+
   // `focusField` is false when the switch came from h/l inside the list, so a
   // run of h/l keeps walking tabs instead of dropping focus into the input
   // after the first step.
@@ -185,7 +201,7 @@ Panel {
   function commitAdd() {
     var parsed = Store.splitScope(addField.text, root.activeTab === "month" ? "month" : "day")
     if (parsed.text === "") return
-    if (store.add(parsed.text, parsed.scope)) {
+    if (store.add(parsed.text, parsed.scope, parsed.repeat)) {
       addField.text = ""
       // Typing "m:" from the Today tab should show you where the task landed.
       if (parsed.scope !== root.activeTab) setTab(parsed.scope)
@@ -256,6 +272,7 @@ Panel {
       onTextKey: function (text) {
         if (text === "a" && root.taskTab) addField.forceActiveFocus()
         else if (text === "m" || text === "M") root.moveSelected()
+        else if (text === "r" || text === "R") root.repeatSelected()
       }
 
       Column {
@@ -427,6 +444,24 @@ Panel {
                   font.pixelSize: Style.font.icon
                 }
 
+                // Cycles once → daily → weekly. Lit while the task repeats,
+                // matching the cadence spelled out in the meta column.
+                PanelActionButton {
+                  id: repeatButton
+                  anchors.right: moveButton.left
+                  anchors.rightMargin: Style.spacing.xxs
+                  anchors.verticalCenter: parent.verticalCenter
+                  visible: taskRow.hasCursor && root.taskTab
+                  iconText: "󰑖"
+                  tooltipText: taskRow.task && taskRow.task.repeat === "daily" ? "Repeats daily — make it weekly"
+                    : (taskRow.task && taskRow.task.repeat === "weekly" ? "Repeats weekly — make it a one-off"
+                    : "Repeat this daily")
+                  foreground: taskRow.task && taskRow.task.repeat ? root.foreground : root.dim
+                  hoverColor: root.foreground
+                  fontFamily: root.fontFamily
+                  onClicked: if (taskRow.task) store.cycleRepeat(taskRow.task.id)
+                }
+
                 // Points the way the task is going: right toward This Month,
                 // left back toward Today, matching the order of the tabs above.
                 PanelActionButton {
@@ -460,11 +495,14 @@ Panel {
                 Text {
                   id: meta
                   textFormat: Text.PlainText
-                  anchors.right: moveButton.left
+                  anchors.right: repeatButton.left
                   anchors.rightMargin: Style.spacing.xs
                   anchors.verticalCenter: parent.verticalCenter
                   text: rowDelegate.modelData.meta
-                  color: taskRow.done ? root.dim : root.urgent
+                  // Only an age is a warning. A cadence and a completion time
+                  // are plain facts, and get the muted color.
+                  color: (taskRow.done || rowDelegate.modelData.metaTone !== "age")
+                    ? root.dim : root.urgent
                   font.family: root.fontFamily
                   font.pixelSize: Style.font.caption
                 }

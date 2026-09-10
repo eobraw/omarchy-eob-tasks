@@ -38,8 +38,11 @@ Item {
   property var now: new Date()
 
   readonly property var tasks: state && state.tasks ? state.tasks : []
-  readonly property int dailyCount: Store.pendingCount(tasks, "day")
-  readonly property int monthlyCount: Store.pendingCount(tasks, "month")
+  // `now` is a dependency, not decoration: a repeating task completed today
+  // drops out of these counts and reappears in them once the clock rolls the
+  // day over, without anything having to write to the file.
+  readonly property int dailyCount: Store.pendingCount(tasks, "day", now)
+  readonly property int monthlyCount: Store.pendingCount(tasks, "month", now)
   readonly property int overdueCount: Store.overdueCount(tasks, now)
 
   function dailyRows() { return Store.pendingRows(tasks, "day", now) }
@@ -57,10 +60,12 @@ Item {
     return true
   }
 
-  function add(text, scope) { return apply(Store.addTask(root.state, text, scope, new Date())) }
+  function add(text, scope, repeat) { return apply(Store.addTask(root.state, text, scope, new Date(), repeat)) }
   function toggle(id) { return apply(Store.toggleDone(root.state, id, new Date())) }
   function remove(id) { return apply(Store.removeTask(root.state, id)) }
   function move(id) { return apply(Store.moveTask(root.state, id)) }
+  function setRepeat(id, repeat) { return apply(Store.setRepeat(root.state, id, repeat)) }
+  function cycleRepeat(id) { return apply(Store.cycleRepeat(root.state, id)) }
 
   function ingest(text) {
     var parsed = Store.parse(text)
