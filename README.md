@@ -119,17 +119,18 @@ watched for changes — edit it by hand and the bar updates immediately.
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "tasks": [
     {
-      "id": "t-1757260800123",
+      "id": "t-1757260800123-4-w0mx",
       "text": "Pay rent",
       "scope": "month",
       "createdOn": "2026-09-01",
       "done": false,
       "completedAt": null,
       "repeat": "",
-      "lastDoneOn": null
+      "lastDoneOn": null,
+      "updatedAt": "2026-09-01T09:14:22.418Z"
     }
   ]
 }
@@ -139,7 +140,9 @@ watched for changes — edit it by hand and the bar updates immediately.
 `""`, `daily` or `weekly`, and `lastDoneOn` is the day a repeating task was last
 ticked off — a repeating task is never itself `done`, it just goes quiet until
 it is due again. Each completion is written as its own finished task carrying an
-`origin` pointing back at the repeating one. If the file
+`origin` pointing back at the repeating one. `updatedAt` records when the task
+last changed; nothing in the panel reads it, and a file written without it is
+loaded unchanged. If the file
 ever fails to parse, the plugin refuses to write over it and says so in the
 panel footer rather than replacing your tasks with an empty list.
 

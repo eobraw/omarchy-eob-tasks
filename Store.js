@@ -75,9 +75,18 @@ function monthsBetween(from, to) {
   return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth())
 }
 
+// Ids have to be unique across machines, not just within one process: a task
+// written on the laptop and one written on the phone in the same millisecond
+// must not collide once they meet in the same store. The counter keeps ids
+// ordered and readable for a single session; the random tail is what makes a
+// collision between two independent writers vanishingly unlikely.
+function randomTail() {
+  return Math.floor(Math.random() * 1679616).toString(36)  // 36^4
+}
+
 function freshId() {
   _seq += 1
-  return "t-" + Date.now() + "-" + _seq
+  return "t-" + Date.now() + "-" + _seq + "-" + randomTail()
 }
 
 function emptyState() {
@@ -118,7 +127,12 @@ function normalizeTask(raw) {
     lastDoneOn: lastDoneOn,
     // On a snapshot, the id of the repeating task it came from — the link that
     // lets reopening it from the archive put the task back on the list.
-    origin: done && raw.origin ? String(raw.origin) : null
+    origin: done && raw.origin ? String(raw.origin) : null,
+    // When this task last changed. Nothing local reads it — it exists so that
+    // two copies of the same task can be compared without guessing. A file
+    // written before this field existed gets stamped on load; that is the
+    // first moment we have any idea when the task was touched.
+    updatedAt: raw.updatedAt ? String(raw.updatedAt) : (completedAt || new Date().toISOString())
   }
 }
 
@@ -135,7 +149,11 @@ function withFields(task, changes) {
     completedAt: task.completedAt,
     repeat: task.repeat || "",
     lastDoneOn: task.lastDoneOn || null,
-    origin: task.origin || null
+    origin: task.origin || null,
+    // Stamped here rather than at each call site: withFields is only ever
+    // reached when a field is actually changing, so this is exactly the set of
+    // moments a task was modified. A caller can override it to keep a stamp.
+    updatedAt: new Date().toISOString()
   }
   for (var key in changes) out[key] = changes[key]
   return out
@@ -345,7 +363,8 @@ function completionSnapshot(task, now) {
     completedAt: now.toISOString(),
     repeat: "",
     lastDoneOn: null,
-    origin: task.id
+    origin: task.id,
+    updatedAt: now.toISOString()
   }
 }
 
